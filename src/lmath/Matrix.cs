@@ -2,7 +2,7 @@
 // Filename: Matrix.cs
 // Author: Aaron Thompson
 // Date Created: 5/31/2020
-// Last Updated: 7/31/2025
+// Last Updated: 8/14/2025
 //
 // Description:
 //  Resource for optimizing matrix multiplication:
@@ -21,6 +21,7 @@ namespace lmath {
 //Implement divide and conquer block matrix multiplication
 public class Matrix : LArray {
 	public static int STRASSEN_MATRIX_SIZE = 512*512;
+	public static int BLOCK_MATRIX_SIZE = 32;
 
 // CONSTRUCTORS
 //------------------------------------------------------------------------------
@@ -226,33 +227,6 @@ public class Matrix : LArray {
 		return matrix;
 	}
 
-	//MATRIX MULTIPLICATION
-	//TODO : ERROR if A.shape[1] != B.shape[0]
-    /*public static Matrix MatMul(Matrix A, Matrix B) {
-		// (m x n) X (n x p) -> m x p
-		int m = A.GetShape()[0];
-		int n = A.GetShape()[1];
-		int p = B.GetShape()[1];
-		Matrix C = Zeros(m, p);
-		
-        float[] arrA = A.AccessData();
-        float[] arrB = B.AccessData();
-		float[] arrC = C.AccessData();
-		for(int i = 0; i < m; i++) {
-			for(int j = 0; j < p; j++) {
-				float sum = 0;
-				for(int k = 0; k < n; k++){
-					float a = arrA[(i * n) + k];
-					float b = arrB[(k * p) + j];
-                    sum += a * b;
-				}
-
-				arrC[(i * p) + j] = sum;
-			}
-		}
-
-		return C;
-	}*/
 
 	public static Matrix MatMul(Matrix A, Matrix B, bool parallel=false) {
 		// (m x n) X (n x p) -> m x p
@@ -260,7 +234,10 @@ public class Matrix : LArray {
 		int n = A.GetShape()[1];
 		int p = B.GetShape()[1];
 		Matrix C = Zeros(m, p);
-		
+
+		//Pre-Transpose Optimization
+		B = Matrix.Transpose(B);
+
         float[] arrA = A.AccessData();
         float[] arrB = B.AccessData();
 		float[] arrC = C.AccessData();
@@ -280,31 +257,70 @@ public class Matrix : LArray {
 		}*/
 
 		if(parallel) {
-			Parallel.For(0, p, j => {
-				for(int k = 0; k < n; k++) {
-					for(int i = 0; i < m; i++) {
-						//float a = arrA[(i * n) + k];
-						//float b = arrB[(k * p) + j];
-						//sum += a * b;
-
-						arrC[(i * p) + j] += arrA[(i * n) + k] * arrB[(k * p) + j];
+			int iblocks = (m/BLOCK_MATRIX_SIZE) + 1;
+			int kblocks = (p/BLOCK_MATRIX_SIZE) + 1;
+			Parallel.For(0, iblocks, iblock => {
+				int ib = iblock * BLOCK_MATRIX_SIZE;
+				int iMax = Mathf.Min(ib + BLOCK_MATRIX_SIZE, m);
+				Parallel.For(0, kblocks, kblock => {
+					int kb = iblock * BLOCK_MATRIX_SIZE;
+					int kMax = Mathf.Min(kb + BLOCK_MATRIX_SIZE, n);
+					for(int jb = 0; jb < p; jb += BLOCK_MATRIX_SIZE) {
+						int jMax = Mathf.Min(jb + BLOCK_MATRIX_SIZE, p);
+						for(int i = ib; i < iMax; i++) {
+							for(int k = kb; k < kMax; k++) {
+								for(int j = jb; j < jMax; j++) {
+									arrC[(i * p) + j] += arrA[(i * n) + k] * arrB[(j * n) + k];
+								}
+							}
+						}
 					}
-				}
+				});
 			});
-		} else{
-			for(int j = 0; j < p; j++) {
-				for(int k = 0; k < n; k++) {
-					for(int i = 0; i < m; i++) {
-						//float a = arrA[(i * n) + k];
-						//float b = arrB[(k * p) + j];
-						//sum += a * b;
-
-						arrC[(i * p) + j] += arrA[(i * n) + k] * arrB[(k * p) + j];
+		} else {
+			for(int ib = 0; ib < m; ib += BLOCK_MATRIX_SIZE) {
+				int iMax = Mathf.Min(ib + BLOCK_MATRIX_SIZE, m);
+				for(int kb = 0; kb < n; kb += BLOCK_MATRIX_SIZE) {
+					int kMax = Mathf.Min(kb + BLOCK_MATRIX_SIZE, n);
+					for(int jb = 0; jb < p; jb += BLOCK_MATRIX_SIZE) {
+						int jMax = Mathf.Min(jb + BLOCK_MATRIX_SIZE, p);
+						for(int i = ib; i < iMax; i++) {
+							for(int k = kb; k < kMax; k++) {
+								for(int j = jb; j < jMax; j++) {
+									arrC[(i * p) + j] += arrA[(i * n) + k] * arrB[(j * n) + k];
+								}
+							}
+						}
 					}
+                }
+            }
+		}
+
+		//Reversing Transposition
+		B = Matrix.Transpose(B);
+
+		return C;
+	}
+
+
+
+	public static Matrix NaiveMul(Matrix A, Matrix B) {
+		int m = A.GetShape()[0];
+		int n = A.GetShape()[1];
+		int p = B.GetShape()[1];
+		Matrix C = Zeros(m, p);
+
+		float[] arrA = A.AccessData();
+		float[] arrB = B.AccessData();
+		float[] arrC = C.AccessData();
+
+		for (int i = 0; i < m; i++) {
+			for (int j = 0; j < p; j++) {
+				for (int k = 0; k < n; k++) {
+					arrC[(i * p) + j] += arrA[(i * n) + k] * arrB[(k * p) + j];
 				}
 			}
-        }
-
+		}
 
 		return C;
 	}
