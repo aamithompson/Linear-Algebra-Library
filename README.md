@@ -148,7 +148,7 @@ This matrix size demonstrates the scalability of optimization.
 The standard `GetElement()` / `SetElement()` allow for normal, safe access to elements contained within the data objects. When a user needs to expose the underlying data for performance-critical code, the `AccessData()` function allows for direct usage. Much of the other functions within the linear math objects use this to maximize performance by avoiding repeated function calls.
 
 - **Operator Overloading:**
-Core mather operations `+`, `-`, and `*` allow for intuitive and natural mathematical expression in code.
+Core math operations `+`, `-`, and `*` allow for intuitive and natural mathematical expression in code.
 
 - **Static Methods:**
 Much of the functions and constructors in the code are static to call back to the class for cleaner structure code. Examples of this are `Zeros()`, `Ones()`, `MatMul()`, `Determinant()`, etc.
