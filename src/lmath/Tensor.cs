@@ -2,7 +2,7 @@
 // Filename: Tensor.cs
 // Author: Aaron Thompson
 // Date Created: 5/20/2020
-// Last Updated: 9/11/2025
+// Last Updated: 9/12/2025
 //
 // Description:
 //==============================================================================
@@ -25,7 +25,7 @@ public class Tensor : LArray {
 
 	public Tensor(float[] data, int[] shape) {
 		this.data = new float[data.Length];
-		shape = new int[shape.Length];
+		this.shape = new int[shape.Length];
 		Reshape(shape);
 		SetData(data);
 	}
@@ -44,9 +44,7 @@ public class Tensor : LArray {
 // DEFAULT OBJECTS
 //------------------------------------------------------------------------------
 	public static Tensor Zeros(int[] shape) {
-		Tensor tensor = new Tensor();
-
-		tensor.Reshape(shape);
+		Tensor tensor = new Tensor(new float[0], shape);
 
 		return tensor;
 	}
@@ -54,7 +52,6 @@ public class Tensor : LArray {
 	public static Tensor Ones(int[] shape) {
 		Tensor tensor = Zeros(shape);
 		
-		tensor.Reshape(shape);
 		tensor.Fill(1.0f);
 
 		return tensor;

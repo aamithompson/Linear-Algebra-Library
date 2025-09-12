@@ -2,7 +2,7 @@
 // Filename: LArray.cs
 // Author: Aaron Thompson
 // Date Created: 6/7/2020
-// Last Updated: 9/11/2025
+// Last Updated: 9/12/2025
 //
 // Description:
 //==============================================================================
@@ -27,14 +27,15 @@ public abstract class LArray {
 	}
 
 	public LArray(System.Array data) {
-		if(data == null){
-			throw new System.ArgumentNullException(nameof(data));
-		}
+		ValidateNotNullArgument(data);
 
 		SetData(data);
 	}
 
 	public LArray(float[] data, int[] shape) {
+		ValidateNotNullArgument(data);
+		ValidateDefinedShape(shape);
+
 		this.data = new float[data.Length];
 		this.shape = new int[shape.Length];
 		Reshape(shape);
@@ -42,6 +43,8 @@ public abstract class LArray {
 	}
 	
 	public LArray(float e, int[] shape) {
+		ValidateDefinedShape(shape);
+
 		this.data = new float[data.Length];
 		this.shape = new int[shape.Length];
 		Reshape(shape);
@@ -49,13 +52,15 @@ public abstract class LArray {
 	}
 
 	public LArray(LArray larray) {
-			data = new float[larray.GetLength()];
-			shape = new int[larray.rank];
-			for(int i = 0; i < rank; i++) {
-				shape[i] = 0;
-			}
+		ValidateNotNullArgument(larray);
 
-			Copy(larray);
+		data = new float[larray.GetLength()];
+		shape = new int[larray.rank];
+		for(int i = 0; i < rank; i++) {
+			shape[i] = 0;
+		}
+
+		Copy(larray);
 	}
 
 // DATA MANAGEMENT
@@ -66,9 +71,7 @@ public abstract class LArray {
 			index = GetLength() + index;
         }
 
-		if(index >= data.Length) {
-			throw new System.IndexOutOfRangeException($"Index {index} out of bounds for length {GetLength()}");
-        }
+		ValidateDataIndex(index);
 
 		return data[index];
     }
@@ -82,9 +85,7 @@ public abstract class LArray {
 			index = GetLength() + index;
         }
 
-		if (index >= data.Length) {
-				throw new System.IndexOutOfRangeException($"Index {index} out of bounds for length {this.data.Length}");
-		}
+		ValidateDataIndex(index);
 
 		data[index] = e;
     }
@@ -139,36 +140,7 @@ public abstract class LArray {
 	//SLICE
 	//This function uses an INCLUSIVE [a, b] range for each dimension.
 	public void SetSlice(float[] data, int[,] range) {
-		//ERROR HANDLING BEGIN
-		if(range.GetLength(0) != shape.Length) {
-				throw new System.ArgumentException($"Rank of range {range.GetLength(0)} does not match the expected rank of shape {shape.Length}.");
-		}
-
-		{
-			int sum = 1;
-			for (int i = 0; i < range.GetLength(0); i++) {
-				if(range[i,0] < 0 || range[i,1] < 0) {
-					throw new System.ArgumentException($"range {i} contains negative numbers.");
-				}
-
-				int length = (range[i, 1] - range[i, 0]) + 1;
-				if(length <= 0) {
-					throw new System.ArgumentException($"Dimension length {length} in range {i} is non-positive (<=0).");
-                }
-
-				if (length > shape[i]) {
-					throw new System.ArgumentException($"Dimension length {length} in range {i} is greater than max dimension length {shape[i]} in shape {i}.");
-                }
-
-				sum *= length;
-			}
-
-			if(sum > data.Length) {
-					throw new System.ArgumentException($"Total range length {sum} is greater than data length {data.Length}.");
-            }
-		}
-		//ERROR HANDLING END
-
+		ValidateRange(range);
 
 		int rank = range.GetLength(0);
 		int[] coordinate = new int[rank];
@@ -205,9 +177,8 @@ public abstract class LArray {
 		SetSlice(larray.AccessData(), range);
 	}
 	
-	//TODO : ERROR for when range is outside rank lengths
-	//This function uses an INCLUSIVE [a, b] range
 	public float[] GetSlice(int[,] range) {
+			ValidateRange(range);
 			//int[,] range -> {{a1, b1}, {a2, b2}, . . ., {aN, bN}}
 			int rank = range.GetLength(0);
 			int[] coordinate = new int[rank];
@@ -253,11 +224,12 @@ public abstract class LArray {
 
 		return totalLength;
 	}
-	
-	//TODO : ERROR for when shape.length != this.shape.length 
-	//AND shape.length > 0
+
 	//Default value is 0
 	public void Reshape(int[] shape) {
+		ValidateDefinedShape(shape);
+		ValidateEqualRank(shape);
+
 		int totalLength = 1;
 		int rank = shape.Length;
 		int[] coordinate = new int[rank];
@@ -309,6 +281,8 @@ public abstract class LArray {
 	}
 	
 	public void Copy(LArray larray) {
+		ValidateEqualRank(larray);
+
 		Reshape(larray.GetShape());
 		
 		float[] data = larray.AccessData();
@@ -322,9 +296,7 @@ public abstract class LArray {
 				data[i] = e;
 		}
 	}
-
-	//TODO : ERROR for when indices.length !=  shape.length
-	//TODO : ERROR for when indices[i] != shape[i]
+	
 	protected int GetIndex(int[] indices) {
 		for(int i = 0; i < rank; i++) {
 			if(indices[i] < 0) {
@@ -385,8 +357,10 @@ public abstract class LArray {
 // OPERATIONS
 //------------------------------------------------------------------------------
 	//ADDITION
-	//TODO : ERROR if shape != larray.shape
 	public void Add(LArray larray) {
+		ValidateNotNullArgument(larray);
+		ValidateEqualShape(larray);
+
 		float[] data = larray.AccessData();
 		for(int i = 0; i < larray.GetLength(); i++) {
 			this.data[i] += data[i];
@@ -407,23 +381,27 @@ public abstract class LArray {
 	}
 
 	public void Subtract(LArray larray) {
+		ValidateNotNullArgument(larray);
+		ValidateEqualShape(larray);
+
 		larray.Negate();
 		Add(larray);
 		larray.Negate();
 	}
 
 	public void HadamardProduct(LArray larray) {
+		ValidateNotNullArgument(larray);
+		ValidateEqualShape(larray);
+
 		float[] data = larray.AccessData();
 		for(int i = 0; i < data.Length; i++) {
 			this.data[i] *= data[i];
 		}
     }
 
-		//BOOLEAN
+	//BOOLEAN
 	public bool ContentEquals(LArray larray) {
-		if(larray == null) {
-			throw new System.ArgumentNullException(nameof(larray));
-        }
+		ValidateNotNullArgument(larray);
 
 		int rank = shape.GetLength(0);
 		if(larray.shape.GetLength(0) != rank) {
@@ -447,8 +425,12 @@ public abstract class LArray {
 	}
 
 	//RANDOMIZE
-	//TODO : ERROR if shape != min.shape != max.shape
 	public void Randomize(LArray min, LArray max) {
+		ValidateNotNullArgument(min);
+		ValidateNotNullArgument(max);
+		ValidateEqualShape(min);
+		ValidateEqualShape(max);
+
 		float[] minData = min.AccessData();
 		float[] maxData = max.AccessData();
 		for(int i = 0; i < data.Length; i++) {
@@ -465,6 +447,11 @@ public abstract class LArray {
 	}
 
 	public void RandomizeN(LArray mean, LArray stdDev) {
+		ValidateNotNullArgument(mean);
+		ValidateNotNullArgument(stdDev);
+		ValidateEqualShape(mean);
+		ValidateEqualShape(stdDev);
+
 		float[] meanData = mean.AccessData();
 		float[] stdDevData = stdDev.AccessData();
 		for(int i = 0; i < data.Length; i++) {
@@ -527,6 +514,95 @@ public abstract class LArray {
 			data[i] = f(data[i]);
         }
     }
+// VALDIDATION FUNCTION(s)
+//------------------------------------------------------------------------------
+	protected void ValidateNotNullArgument(float[] data) {
+		if(data == null) {
+			throw new System.ArgumentNullException(nameof(data));
+		}
+    }
+
+	protected void ValidateNotNullArgument(System.Array data) {
+		if(data == null) {
+			throw new System.ArgumentNullException(nameof(data));
+		}
+    }
+
+	protected void ValidateNotNullArgument(LArray larray) {
+		if(data == null) {
+			throw new System.ArgumentNullException(nameof(larray));
+		}
+	}
+
+	protected void ValidateDefinedShape(int[] shape) {
+		if(shape == null) {
+			throw new System.ArgumentNullException(nameof(shape));
+		}
+
+		if(shape.Length < 1) {
+				throw new System.ArgumentOutOfRangeException(nameof(shape), shape.Length, "Shape length must be at least 1");
+		}
+    }
+
+	protected void ValidateEqualRank(int[] shape) {
+		if(shape.Length != this.shape.Length) {
+			throw new System.ArgumentException($"Shape length {shape.Length} is not equal to expected shape length {this.shape.Length}");
+		}
+    }
+
+	protected void ValidateEqualRank(LArray larray) {
+		if(larray.shape.Length != this.shape.Length) {
+			throw new System.ArgumentException($"Other larray shape length {larray.shape.Length} is not equal to expected shape length {this.shape.Length}");
+		}
+    }
+
+	protected void ValidateEqualShape(LArray larray) {
+		int[] shape = larray.GetShape();
+		ValidateEqualRank(shape);
+
+		for(int i = 0; i < shape.Length; i++) {
+            if (shape[i] != this.shape[i]) {
+				throw new System.ArgumentException($"Value of shape {shape[i]} at index {i} does not equal expected value {this.shape[i]}");
+			}
+        }
+    }
+
+	protected void ValidateDataIndex(int index) {
+		if (index >= data.Length || index < 0) {
+			throw new System.IndexOutOfRangeException($"Index {index} out of bounds for length {this.data.Length}");
+		}
+	}
+
+	protected void ValidateRange(int[,] range) {
+		if (range.GetLength(0) != shape.Length) {
+			throw new System.ArgumentException($"Rank of range {range.GetLength(0)} does not match the expected rank of shape {shape.Length}.");
+		}
+
+		int sum = 1;
+		for (int i = 0; i < range.GetLength(0); i++) {
+			if (range[i, 0] < 0 || range[i, 1] < 0)
+			{
+				throw new System.ArgumentOutOfRangeException(nameof(range), $"range {i} contains negative numbers.");
+			}
+
+			int length = (range[i, 1] - range[i, 0]) + 1;
+			if (length <= 0)
+			{
+				throw new System.ArgumentOutOfRangeException(nameof(range), $"Dimension length {length} in range {i} is non-positive (<=0).");
+			}
+
+			if (length > shape[i])
+			{
+				throw new System.ArgumentOutOfRangeException(nameof(range), $"Dimension length {length} in range {i} is greater than max dimension length {shape[i]} in shape {i}.");
+			}
+
+			sum *= length;
+		}
+
+		if (sum > data.Length) {
+			throw new System.ArgumentException($"Total range length {sum} is greater than data length {data.Length}.");
+		}
+	}
 }
 } // END namespace lmath
 
