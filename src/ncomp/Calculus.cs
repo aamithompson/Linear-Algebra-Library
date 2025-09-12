@@ -2,13 +2,12 @@
 // Filename: Calculus.cs
 // Author: Aaron Thompson
 // Date Created: 7/19/2020
-// Last Updated: 12/7/2020
+// Last Updated: 9/11/2025
 //
 // Description:
 //==============================================================================
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using lmath;
 //------------------------------------------------------------------------------
 namespace ncomp { 
@@ -141,11 +140,11 @@ public static class Calculus {
 
 	//Error Function
 	public static float ErfDiferential(float x) {
-		return Mathf.Exp(-1 * (x * x));
+		return System.MathF.Exp(-1 * (x * x));
 	}
 
 	public static float Erf(float x) {
-		return (2/Mathf.Sqrt(Mathf.PI)) * IntegrateSim(ErfDiferential, 0, x);
+		return (2/System.MathF.Sqrt(System.MathF.PI)) * IntegrateSim(ErfDiferential, 0, x);
 	}
 
 
