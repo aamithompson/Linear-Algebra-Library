@@ -2,7 +2,7 @@
 // Filename: Tensor.cs
 // Author: Aaron Thompson
 // Date Created: 5/20/2020
-// Last Updated: 9/12/2025
+// Last Updated: 9/17/2025
 //
 // Description:
 //==============================================================================
@@ -61,6 +61,7 @@ public class Tensor : LArray {
 //------------------------------------------------------------------------------
 	//ADDITION
 	public static Tensor Add(Tensor A, Tensor B) {
+		ValidateNotNullArgument(A);
 		Tensor C = new Tensor(A);
 		C.Add(B);
 		return C;
@@ -72,6 +73,7 @@ public class Tensor : LArray {
 	
 	//SCALAR MULTIPLICATION
 	public static Tensor Scale(float c, Tensor A) {
+		ValidateNotNullArgument(A);
 		Tensor B = new Tensor(A);
 		B.Scale(c);
 		return B;
@@ -87,6 +89,7 @@ public class Tensor : LArray {
 
 	//SUBTRACT
 	public static Tensor Negate(Tensor A) {
+		ValidateNotNullArgument(A);
 		Tensor B = new Tensor(A);
 		B.Negate();
 		return B;
@@ -97,6 +100,7 @@ public class Tensor : LArray {
 	}
 
 	public static Tensor Subtract(Tensor A, Tensor B) {
+		ValidateNotNullArgument(A);
 		Tensor C = new Tensor(A);
 		C.Subtract(B);
 		return C;
@@ -107,6 +111,7 @@ public class Tensor : LArray {
 	}
 
 	public static Tensor HadamardProduct(Tensor A, Tensor B) {
+		ValidateNotNullArgument(A);
 		Tensor C = new Tensor(A);
 		C.HadamardProduct(B);
 		return C;

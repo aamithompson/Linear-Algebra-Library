@@ -2,7 +2,7 @@
 // Filename: LArray.cs
 // Author: Aaron Thompson
 // Date Created: 6/7/2020
-// Last Updated: 9/12/2025
+// Last Updated: 9/17/2025
 //
 // Description:
 //==============================================================================
@@ -516,31 +516,43 @@ public abstract class LArray {
     }
 // VALDIDATION FUNCTION(s)
 //------------------------------------------------------------------------------
-	protected void ValidateNotNullArgument(float[] data) {
+	protected static void ValidateNotNullArgument(float[] data) {
 		if(data == null) {
 			throw new System.ArgumentNullException(nameof(data));
 		}
     }
 
-	protected void ValidateNotNullArgument(System.Array data) {
+	protected static void ValidateNotNullArgument(System.Array data) {
 		if(data == null) {
 			throw new System.ArgumentNullException(nameof(data));
 		}
     }
 
-	protected void ValidateNotNullArgument(LArray larray) {
-		if(data == null) {
+	protected static void ValidateNotNullArgument(LArray larray) {
+		if(larray == null) {
 			throw new System.ArgumentNullException(nameof(larray));
 		}
 	}
 
-	protected void ValidateDefinedShape(int[] shape) {
+	protected void ValidateNotEmpty() {
+		if(data.Length == 0) {
+			throw new System.ArgumentException($"Data is empty, it contains no values.");
+        }
+    }
+
+	protected static void ValidateDefinedShape(int[] shape) {
 		if(shape == null) {
 			throw new System.ArgumentNullException(nameof(shape));
 		}
 
 		if(shape.Length < 1) {
 				throw new System.ArgumentOutOfRangeException(nameof(shape), shape.Length, "Shape length must be at least 1");
+		}
+
+		for(int i = 0; i < shape.Length; i++) {
+				if(shape[i] < 0) {
+					throw new System.ArgumentException($"Value of shape {shape[i]} at index {i} is negative. Must use non-negative values for shape definition.");
+				}
 		}
     }
 
@@ -570,6 +582,12 @@ public abstract class LArray {
 	protected void ValidateDataIndex(int index) {
 		if (index >= data.Length || index < 0) {
 			throw new System.IndexOutOfRangeException($"Index {index} out of bounds for length {this.data.Length}");
+		}
+	}
+
+	protected void ValidateDataIndex(int index, int shapeindex) {
+		if (index >= shape[shapeindex] || index < 0) {
+			throw new System.IndexOutOfRangeException($"Index {index} out of bounds for length {this.shape[shapeindex]}");
 		}
 	}
 
