@@ -2,7 +2,7 @@
 // Filename: Calculus.cs
 // Author: Aaron Thompson
 // Date Created: 7/19/2020
-// Last Updated: 9/11/2025
+// Last Updated: 9/28/2025
 //
 // Description:
 //==============================================================================
@@ -53,7 +53,7 @@ public static class Calculus {
 
 		for(int i = 0; i < n; i++) {
 			for(int j = 0; j < n; j++) {
-				matrix[n,n] = PartialDerivative(functions[i], j, x);
+				matrix[i,j] = PartialDerivative(functions[i], j, x);
 			}
 		}
 
@@ -67,7 +67,7 @@ public static class Calculus {
 		for(int i = 0; i < n; i++) {
 			for(int j = 0; j < n; j++) {
 				Vector dims = new Vector(new float[] {i, j});
-				matrix[n,n] = PartialDerivative(f, dims, x);
+				matrix[i,j] = PartialDerivative(f, dims, x);
 			}
 		}
 
@@ -126,14 +126,14 @@ public static class Calculus {
 		float sum = f(x);
 		for(int i = 1; i < n; i++) {
 			x += dx;
-			if (n%2 == 1) {
+			if (i%2 == 1) {
 				sum += 4 * f(x);
 			} else {
 				sum += 2 * f(x);
 			}
 		}
 		sum += f(x + dx);
-		sum = (dx/2) * sum;
+		sum = (dx/3) * sum;
 
 		return sum;
 	}
