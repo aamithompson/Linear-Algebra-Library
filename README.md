@@ -47,7 +47,7 @@ The library supports **matrix**, **vector**, and **tensor** objects with a focus
 ### Installation
 1. Download the repository as a ZIP or clone it:
 ```bash
-git clone https://github.com/yourusername/LinearAlgebraLibrary.git
+git clone https://github.com/aamithompson/LinearAlgebraLibrary.git
 ```
 
 2. Copy the `LinearAlgebraLibrary` folder into your Unity or C# project’s `Assets` or source folder.
@@ -177,7 +177,7 @@ Can switch to operate on smaller sub-blocks to improve cache reuse.
 Large matrices have significant increase in performance by opting in parallel computation via `Parallel.For()`.
 
 ### Unity Integration
-- Written for Unity by default to use in simulation environments. Can be easily adapted to pure C# by replacing Unity specific function calls such as the `MonoBehavior.print()` and `Random` functions.
+- Written for Unity by default to use in simulation environments. Has been adapted to pure C#.
  
 ## 6. Future Work / Optimization Considerations
 While the current implementation provides a baseline performance, usage, and flexibility, there are several considerations for future development:
