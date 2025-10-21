@@ -46,6 +46,7 @@ public class lmathVectorTests {
     public void Constructor_Vector() {
         c = new Vector(a);
         Assert.NotNull(c.AccessData(), "Vector internal data array is not initialized.");
+        Assert.AreNotSame(a.AccessData(), c.AccessData(), "Copy constructor did not create a deep copy of internal data.");
         Assert.AreEqual(1, c.rank, "Vector does not have rank 1.");
         Assert.AreEqual(a.length, c.length, $"Vector length {c.length} is not expected length {a.length}");
 
