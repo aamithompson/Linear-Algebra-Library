@@ -139,5 +139,172 @@ public class lmathTensorTests {
             }
         }
     }
+
+    [Test, Category("Data Management")]
+    public void DataManagement_SetSlice_Scalar() {
+        int n = A_2D.GetShape()[0];
+        int m = A_2D.GetShape()[1];
+        Tensor expected = new Tensor(A_2D);
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                int[] indices = {i, j};
+                int[,] indicesRange = {{i, i}, {j, j}};
+                A_2D.SetSlice(new float[] {-1}, indicesRange);
+                for(int i2 = 0; i2 < n; i2++) {
+                    for(int j2 = 0; j2 < m; j2++) {
+                        int[] indices2 = {i2, j2};
+                        float value = A_2D.GetElement(indices2);
+                        if(i2 == i && j2 == j) {
+                            Assert.AreEqual(-1f, value, $"Element {value} at index [{i2}, {j2}] does not equal expected value {-1f}.");
+                        } else {
+                            Assert.AreEqual(expected.GetElement(indices2), value, $"Element {value} at index [{i2}, {j2}] does not equal expected value {expected.GetElement(indices2)}.");
+                        }
+                    }
+                }
+
+                A_2D.SetElement(expected.GetElement(indices), indices);
+            }
+        }
+    }
+
+    [Test, Category("Data Management")]
+    public void DataManagement_SetSlice_Row() {
+        int n = A_2D.GetShape()[0];
+        int m = A_2D.GetShape()[1];
+        float[] slice = new float[m];
+        System.Array.Fill(slice, -1f);
+        Tensor expected = new Tensor(A_2D);
+        for(int i = 0; i < n; i++) {
+            int[,] indicesRange = {{i, i}, {0, m-1}};
+            A_2D.SetSlice(slice, indicesRange);
+            for(int i2 = 0; i2 < n; i2++) {
+                for(int j2 = 0; j2 < m; j2++) {
+                    int[] indices = {i2, j2};
+                    float value = A_2D.GetElement(indices);
+                    if(i2 == i) {
+                        Assert.AreEqual(-1f, value, $"Element {value} at index [{i2}, {j2}] does not equal expected value {-1f}.");
+                    } else {
+                        Assert.AreEqual(expected.GetElement(indices), value, $"Element {value} at index [{i2}, {j2}] does not equal expected value {expected.GetElement(indices)}.");
+                    }
+                }
+            }
+
+            A_2D.SetSlice(expected.GetSlice(indicesRange), indicesRange);
+        }
+    }
+
+    [Test, Category("Data Management")]
+    public void DataManagement_SetSlice_Column() {
+        int n = A_2D.GetShape()[0];
+        int m = A_2D.GetShape()[1];
+        float[] slice = new float[n];
+        System.Array.Fill(slice, -1f);
+        Tensor expected = new Tensor(A_2D);
+        for(int j = 0; j < n; j++) {
+            int[,] indicesRange = {{0, n-1}, {j, j}};
+            A_2D.SetSlice(slice, indicesRange);
+            for(int i2 = 0; i2 < n; i2++) {
+                for(int j2 = 0; j2 < m; j2++) {
+                    int[] indices = {i2, j2};
+                    float value = A_2D.GetElement(indices);
+                    if(j2 == j) {
+                        Assert.AreEqual(-1f, value, $"Element {value} at index [{i2}, {j2}] does not equal expected value {-1f}.");
+                    } else {
+                        Assert.AreEqual(expected.GetElement(indices), value, $"Element {value} at index [{i2}, {j2}] does not equal expected value {expected.GetElement(indices)}.");
+                    }
+                }
+            }
+
+            A_2D.SetSlice(expected.GetSlice(indicesRange), indicesRange);
+        }
+    }
+
+    [Test, Category("Data Management")]
+    public void DataManagement_SetSlice_Block() {
+        int n = A_2D.GetShape()[0];
+        int m = A_2D.GetShape()[1];
+        float[] slice = new float[(n - 1) * (m - 1)];
+        System.Array.Fill(slice, -1f);
+        Tensor expected = new Tensor(A_2D);
+        for(int i = 0; i <= 1; i++) {
+            int xa = i;
+            int xb = n - (2 - i);
+            for (int j = 0; j <= 1; j++) {
+                int ya = j;
+                int yb = m - (2 - j);
+                int[,] indicesRange = {{xa, xb}, {ya, yb}};
+                A_2D.SetSlice(slice, indicesRange);
+                for(int i2 = 0; i2 < n; i2++) {
+                    for(int j2 = 0; j2 < m; j2++) {
+                        int[] indices = {i2, j2};
+                        float value = A_2D.GetElement(indices);
+                        if((i2 >= xa && i2 <= xb) && (j2 >= ya && j2 <= yb)) {
+                            Assert.AreEqual(-1f, value, $"Element {value} at index [{i2}, {j2}] does not equal expected value {-1f}.");
+                        } else {
+                            Assert.AreEqual(expected.GetElement(indices), value, $"Element {value} at index [{i2}, {j2}] does not equal expected value {expected.GetElement(indices)}.");
+                        }
+                    }
+                }
+
+                A_2D.SetSlice(expected.GetSlice(indicesRange), indicesRange);
+            }
+        }
+    }
+
+    [Test, Category("Data Management")]
+    public void DataManagement_SetSlice_FullBlock() {
+        int n = A_2D.GetShape()[0];
+        int m = A_2D.GetShape()[1];
+        float[] slice = new float[n * m];
+        System.Array.Fill(slice, -1f);
+        int[,] indicesRange = {{0, n - 1}, {0, m-1}};
+        A_2D.SetSlice(slice, indicesRange);
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                int[] indices = {i, j};
+                float value = A_2D.GetElement(indices);
+                Assert.AreEqual(-1f, value, $"Element {value} at index [{i}, {j}] does not equal expected value {-1}.");
+            }
+        }
+    }
+
+    [Test, Category("Data Management")]
+    public void DataManagement_SetSlice_3D_Block() {
+        int n = A_3D.GetShape()[0];
+        int m = A_3D.GetShape()[1];
+        int p = A_3D.GetShape()[2];
+        float[] slice = new float[(n-1) * (m-1) * (p-1)];
+        System.Array.Fill(slice, -1f);
+        Tensor expected = new Tensor(A_3D);
+        for (int i = 0; i <= 1; i++) {
+            int xa = i;
+            int xb = n - (2 - i);
+            for(int j = 0; j <= 1; j++) {
+                int ya = j;
+                int yb = m - (2 - j);
+                for(int k = 0; k <= 1; k++) {
+                    int za = k;
+                    int zb = p - (2 - k);
+                    int[,] indicesRange = {{xa, xb}, {ya, yb}, {za, zb}};
+                    A_3D.SetSlice(slice, indicesRange);
+                    for(int i2 = 0; i2 < n; i2++) {
+                        for(int j2 = 0; j2 < m; j2++) {
+                            for (int k2 = 0; k2 < p; k2++) {
+                                int[] indices = {i2, j2, k2};
+                                float value = A_3D.GetElement(indices);
+                                if((i2 >= xa && i2 <= xb) && (j2 >= ya && j2 <= yb) && (k2 >= za && k2 <= zb)) {
+                                    Assert.AreEqual(-1f, value, $"Element {value} at index [{i2}, {j2}, {k2}] does not equal expected value {-1f}.");
+                                } else {
+                                    Assert.AreEqual(expected.GetElement(indices), value, $"Element {value} at index [{i2}, {j2}, {k2}] does not equal expected value {expected.GetElement(indices)}.");
+                                }
+                            }
+                        }
+                    }
+
+                    A_3D.SetSlice(expected.GetSlice(indicesRange), indicesRange);
+                }
+            }
+        }
+    }
 }
 

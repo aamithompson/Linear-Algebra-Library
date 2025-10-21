@@ -16,7 +16,7 @@ public abstract class LArray {
 //------------------------------------------------------------------------------
 	protected float[] data;
 	protected int[] shape;
-	public int rank { get { return shape.GetLength(0); } }
+	public int rank { get { return shape.Length; } }
 	public static float epsilon = 0.00001f;
 
 // CONSTRUCTORS
@@ -298,6 +298,9 @@ public abstract class LArray {
 	}
 	
 	protected int GetIndex(int[] indices) {
+		ValidateNotNullArgument(indices);
+		ValidateDataIndices(indices);
+		
 		for(int i = 0; i < rank; i++) {
 			if(indices[i] < 0) {
 				indices[i] = shape[i] + indices[i];
@@ -591,6 +594,13 @@ public abstract class LArray {
 		}
 	}
 
+	protected void ValidateDataIndices(int[] indices) {
+		ValidateEqualRank(indices);
+		for(int i = 0; i < indices.Length; i++) {
+			ValidateDataIndex(indices[i], i);
+		}
+	}
+
 	protected void ValidateRange(int[,] range) {
 		if (range.GetLength(0) != shape.Length) {
 			throw new System.ArgumentException($"Rank of range {range.GetLength(0)} does not match the expected rank of shape {shape.Length}.");
@@ -623,4 +633,3 @@ public abstract class LArray {
 	}
 }
 } // END namespace lmath
-

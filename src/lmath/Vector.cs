@@ -261,7 +261,7 @@ public class Vector : LArray {
 	public bool IsUnit() {
 		float norm = Norm(2);
 
-		return System.Math.Abs(1.0 - norm) < epsilon;
+		return System.MathF.Abs(1.0f - norm) < epsilon;
 	}
 
 	public static bool IsUnit(Vector v1) {
