@@ -240,15 +240,15 @@ public abstract class LArray {
 
 		float[] data = new float[totalLength];
 		if(this.shape.Length == 0) {
-			this.shape = new int[shape.Length];
-			for(int i = 0; i < shape.Length; i++) {
+			this.shape = new int[rank];
+			for(int i = 0; i < rank; i++) {
 				this.shape[i] = 0;
 			}
 		}
 
 		for(int i = 0; i < totalLength; i++) {
 			for (int j = rank - 1; j >= 0; j--) {
-				if (coordinate[j] > shape[j]) {
+				if (coordinate[j] >= shape[j]) {
 					coordinate[j] = 0;
 					if(j > 0) {
 						coordinate[j - 1]++;
