@@ -115,7 +115,7 @@ public class lmathMatrixTests {
         for(int i = 0; i < n; i++) { 
             for(int j = 0; j < m; j++) {
                 C.SetElement(A[i, j], i, j);
-                for(int i2 = 0; i2 < m; i2++) {
+                for(int i2 = 0; i2 < n; i2++) {
                     for(int j2 = 0; j2 < m; j2++) { 
                         float value = C[i2, j2];
                         float expected = 0.0f;
@@ -240,7 +240,7 @@ public class lmathMatrixTests {
         }
     }
 
-     // DEFAULT OBJECTS
+    // DEFAULT OBJECTS
     //------------------------------------------------------------------------------
     [Test, Category("Default Objects")]
     public void DefaultObject_Zeros() {
@@ -347,6 +347,59 @@ public class lmathMatrixTests {
     // OPERATIONS
     //------------------------------------------------------------------------------
     [Test, Category("Operations")]
+    public void Operations_Scale() {
+        float expected = 2.0f;
+        int n = Ones.GetShape()[0];
+        int m = Ones.GetShape()[1];
+        Ones.Scale(expected);
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                Assert.That(Ones[i, j], Is.EqualTo(expected).Within(1e-5f), $"Element {Ones[i, j]} at index [{i}, {j}] does not equal expected element {expected}");
+            }
+        }
+    }
+
+    [Test, Category("Operations")]
+    public void Operations_Negate() {
+        int n = A.GetShape()[0];
+        int m = A.GetShape()[1];
+        C = Matrix.Negate(A);
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                Assert.That(C[i, j], Is.EqualTo(-A[i, j]).Within(1e-5f), $"Element {C[i, j]} at index [{i}, {j}] does not equal expected element {-A[i, j]}");
+            }
+        }
+    }
+
+    [TestCase("Add"), Category("Operations")]
+    [TestCase("Subtract"), Category("Operations")]
+    [TestCase("Hadamard"), Category("Operations")]
+    public void Operations_TwoMatrices_ElementWise(string operation) {
+        int n = A.GetShape()[0];
+        int m = A.GetShape()[1];
+
+        switch (operation) {
+            case "Add": C = A + B; break;
+            case "Subtract": C = A - B; break;
+            case "Hadamard": C = Matrix.HadamardProduct(A, B); break;
+            default: throw new System.ArgumentException();
+        }
+
+        for(int i = 0; i < n; i++) {
+            for( int j = 0; j < m; j++) {
+                float expected = operation switch {
+                    "Add" => A[i, j] + B[i, j],
+                    "Subtract" => A[i, j] - B[i, j],
+                    "Hadamard" => A[i, j] * B[i, j],
+                    _ => 0
+                };
+
+                Assert.That(C[i, j], Is.EqualTo(expected).Within(1e-5f), $"Element {C[i, j]} at index [{i}, {j}] does not equal expected element {expected}");
+            }
+        }
+    }
+
+    [Test, Category("Operations")]
     public void Operations_MatMul() {
         float[,] expected = {{26,16,28}, {56,40,64}, {86,64,100}};
         int n = expected.GetLength(0);
@@ -380,5 +433,93 @@ public class lmathMatrixTests {
                 }
             }
         }
+    }
+
+    [Test, Category("Operations")]
+    public void Operations_MatVecMul() {
+        Vector v = new Vector(new float[] {1, 2 ,3});
+        float[] expected = {14f, 32f, 50f};
+        int n = expected.Length;
+        Vector result = Matrix.MatVecMul(A, v);
+
+        Assert.AreEqual(n, result.length, $"Vector length {result.length} not equal to expected length {n}.");
+        for(int i = 0; i < n; i++) {
+            float value = result[i];
+            Assert.That(value, Is.EqualTo(expected[i]).Within(1e-5f), $"Element {value} at index {i} does not equal expected value {expected}.");
+        }
+
+        //Result Shape Check
+        n = 10;
+        int m = 10;
+        int[] nrange = {1, n};
+        int[] mrange = {1, m};
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                A = Matrix.Zeros(i, j);
+                Vector b = Vector.Zeros(j);
+                Vector c = Matrix.MatVecMul(A, b);
+                Assert.AreEqual(i, c.length, $"Vector length {c.length} is not expected length {i}.");
+            }
+        }
+    }
+
+    [Test, Category("Operations")]
+    public void Operations_Transpose() { 
+        C = Matrix.Transpose(A);
+        int n = A.GetShape()[0];
+        int m = A.GetShape()[1];
+
+        Assert.AreEqual(m, C.GetShape()[0], $"Matrix row number {C.GetShape()[0]} is not expected row number {m}");
+        Assert.AreEqual(n, C.GetShape()[1], $"Matrix column number {C.GetShape()[1]} is not expected column number {n}");
+        for (int i = 0; i < n; i++) { 
+            for(int j = 0; j < m; j++) {
+                float expected = A[i, j];
+                float value = C[j, i];
+                Assert.AreEqual(expected, value, $"Element {value} at index [{j}, {i}] does not equal expected element {expected}");
+            }
+        }
+    }
+
+    [Test, Category("Operations")]
+    public void Operations_FrobeniusNorm() {
+        float expected = System.MathF.Sqrt(16.882f);
+        float value = A.Norm();
+        Assert.That(value, Is.EqualTo(expected).Within(1e-5f));
+    }
+
+    [Test, Category("Operations")]
+    public void Operations_Trace() {
+        float expected = 15f;
+        float value = A.Trace();
+        Assert.That(value, Is.EqualTo(expected).Within(1e-5f));
+    }
+
+    [Test, Category("Operations")]
+    public void Operations_Determinant() {
+        float expectedA = 0f;
+        float expectedB = 48f;
+        float valueA = A.Determinant();
+        float valueB = B.Determinant();
+        Assert.That(valueA, Is.EqualTo(expectedA).Within(1e-5f));
+        Assert.That(valueB, Is.EqualTo(expectedB).Within(1e-5f));
+    }
+
+    //CONDITIONS
+    //------------------------------------------------------------------------------
+    [Test, Category("Conditions")]
+    public void Conditions_Symmetric() {
+        int n = A.GetShape()[0];
+        int m = A.GetShape()[1];
+
+        C = new Matrix(A);
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                C[i, j] = C[j, i];
+            }
+        }
+
+        Assert.IsFalse(A.IsSymmetric());
+        Assert.IsTrue(Zeroes.IsSymmetric());
+        Assert.IsTrue(C.IsSymmetric());
     }
 }
