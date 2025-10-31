@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using lmath;
+using statistics;
 using NUnit.Framework;
 
 [TestFixture]
@@ -502,6 +503,112 @@ public class lmathMatrixTests {
         float valueB = B.Determinant();
         Assert.That(valueA, Is.EqualTo(expectedA).Within(1e-5f));
         Assert.That(valueB, Is.EqualTo(expectedB).Within(1e-5f));
+    }
+
+    // RANDOM
+    //------------------------------------------------------------------------------
+    [Test, Category("Random")]
+    public void Random_Uniform_MatrixFromFloats() {
+        int bcount = 100; //Bucket Count
+        int scount = 100000; //Sample Count
+
+        Matrix sum = Matrix.Zeros(3, 3);
+        Vector[] buckets = new Vector[3 * 3] {Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount),
+                                                Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount),
+                                                Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount)};
+        for(int i = 0; i < scount; i++) {
+            C = Matrix.Random(0, 1, 3, 3);
+            for(int j = 0; j < 9; j++) {
+                Assert.That(C[j], Is.InRange(0, 1));
+                int bucket = (int)System.Math.Min(bcount-1, System.Math.Floor(C[j] * bcount));
+                buckets[j][bucket]++;
+            }
+            sum += C;
+        }
+
+        Matrix mean = sum * (1f / scount);
+        float expectedMean = (1f + 0f) / 2f;
+        for (int i = 0; i < 9; i++) {
+            Assert.That(mean[i], Is.EqualTo(expectedMean).Within(1e-2f));
+        }
+
+        int expectedCount = scount / bcount;
+        double p = 1.0 / bcount;
+        double sigma = System.Math.Sqrt(scount * p * (1-p));
+        int expectedMin = expectedCount - (int)(4 * sigma);
+        int expectedMax = expectedCount + (int)(4 * sigma);
+        for (int i = 0; i < bcount; i++) {
+            for(int j = 0; j < 9; j++) {
+                Assert.That(buckets[j][i], Is.InRange(expectedMin, expectedMax));
+            }
+        }
+    }
+
+    [Test, Category("Random")]
+    public void Random_Normal_MatrixFromFloats() {
+        const int bcount = 3; //Bucket Count
+        int scount = 100000; //Sample Count
+        float expectedMean = 1f;
+        float expectedSTDDev = 1f;
+        Vector bvalues = Vector.Zeros(bcount);
+        for(int i = 0; i < bcount; i++) {
+            double cdf = Statistics.NormalCDF(0.0, 1.0, i+1);
+            double probability = 2 * cdf - 1;
+            bvalues[i] = (float) probability;
+
+        }
+
+        for(int i = bcount - 1; i > 0; i--) {
+            bvalues[i] -= bvalues[i - 1];
+        }
+
+        Matrix sum = Matrix.Zeros(3, 3);
+        Matrix sumSQ = Matrix.Zeros(3, 3);
+        Vector[] buckets = new Vector[3 * 3] {Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount),
+                                                Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount),
+                                                Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount)};
+        for (int i = 0; i < scount; i++) {
+            C = Matrix.RandomN(expectedMean, expectedSTDDev, 3, 3);
+            sum += C;
+            for(int j = 0; j < 9; j++) {
+                sumSQ[j] += C[j] * C[j];
+            }
+
+            for(int j = 0; j < 9; j++) {
+                bool bucketFound = false;
+                float value = System.MathF.Abs(C[j] - expectedMean);
+                for(int k = 0; k < bcount-1; k++) {
+                    if(value <= (k+1) * expectedSTDDev) {
+                        buckets[j][k]++;
+                        bucketFound = true;
+                        break;
+                    }
+                }
+
+                if(!bucketFound) {
+                    buckets[j][bcount - 1]++;
+                }
+            }
+        }
+
+        Matrix mean = sum * (1f / scount);
+        for(int i = 0; i < 9; i++) {
+            Assert.That(mean[i], Is.EqualTo(expectedMean).Within(1e-2f));
+        }
+
+        Matrix variance = (sumSQ * (1f / scount)) - Matrix.HadamardProduct(mean, mean);
+        Matrix stdDev = new Matrix(variance);
+        for(int i = 0; i < 9; i++) {
+            stdDev[i] = System.MathF.Sqrt(stdDev[i]);
+            Assert.That(stdDev[i], Is.EqualTo(expectedSTDDev).Within(1e-2f));
+        }
+        
+        for(int i = 0; i < bcount; i++) {
+            for (int j = 0; j < 9; j++) {
+                float percent = (float)buckets[j][i]/scount;
+                Assert.That(percent, Is.EqualTo(bvalues[i]).Within(1e-2f));
+            }
+        }
     }
 
     //CONDITIONS
