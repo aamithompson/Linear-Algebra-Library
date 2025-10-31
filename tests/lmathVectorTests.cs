@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using lmath;
+using statistics;
 using NUnit.Framework;
 
 [TestFixture]
@@ -246,28 +247,6 @@ public class lmathVectorTests {
         }
     }
 
-    //Approximation for the Error Function erf(x) by Abramowitz & Stegun, formula 7.1.26
-    private double ERF(double x) {
-        double a1 = 0.254829592;
-        double a2 = -0.284496736;
-        double a3 = 1.421413741;
-        double a4 = -1.453152027;
-        double a5 = 1.061405429;
-        double p = 0.3275911;
-
-        int sign = x < 0 ? -1 : 1;
-        x = System.Math.Abs(x);
-
-        double t = 1.0 / (1.0 + p * x);
-        double y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * System.Math.Exp(-x * x);
-
-        return sign * y;
-    }
-
-    private double NormalCDF(double mean, double stdDev, double x) {
-        return (1.0 + ERF((x - mean) / (stdDev * System.Math.Sqrt(2)))) / 2.0;
-    }
-
     [Test, Category("Random")]
     public void Random_Normal_VectorFromFloats() {
         const int bcount = 3; //Bucket Count
@@ -276,7 +255,7 @@ public class lmathVectorTests {
         float expectedSTDDev = 1f;
         Vector bvalues = Vector.Zeros(bcount);
         for(int i = 0; i < bcount; i++) {
-            double cdf = NormalCDF(0.0, 1.0, i+1);
+            double cdf = Statistics.NormalCDF(0.0, 1.0, i+1);
             double probability = 2 * cdf - 1;
             bvalues[i] = (float) probability;
 
