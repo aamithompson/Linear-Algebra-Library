@@ -5,17 +5,271 @@ using NUnit.Framework;
 
 [TestFixture]
 public class lmathTensorTests {
+    Tensor A_0D;
     Tensor A_2D;
+    Tensor B_2D;
+    Tensor Zeros_2D;
+    Tensor Ones_2D;
     Tensor A_3D;
+    Tensor B_3D;
+    Tensor Zeros_3D;
+    Tensor Ones_3D;
 
     [SetUp]
     public void SetUp() {
+        A_0D = new Tensor();
         A_2D = new Tensor(new float[,] {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
+        B_2D = new Tensor(new float[] {1, 2, 4, 8, 1, 6, 3, 2, 6}, new int[] {3, 3});
+        Zeros_2D = Tensor.Zeros(new int[] {3, 3});
+        Ones_2D = Tensor.Ones(new int[] { 3, 3 });
         A_3D = new Tensor(new float[,,] {{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, {{11, 12, 13}, {14, 15, 16}, {17, 18, 19}}, {{21, 22, 23}, {24, 25, 26}, {27, 28, 29}}});
+        B_3D = new Tensor(new float[,,] {{{1, 2, 4}, {8, 1, 6}, {3, 2, 6}}, {{4, 1, 2}, {8, 2, 5}, {6, 5, 1}}, {{2, 1, 0}, {2, 4, 2}, {0, 4, 8}}});
+        Zeros_3D = Tensor.Zeros(new int[] {3, 3, 3});
+        Ones_3D = Tensor.Ones(new int[] {3, 3, 3});
+
+    }
+
+// CONSTRUCTORS
+//------------------------------------------------------------------------------
+    [Test, Category("Constructors")]
+    public void Constructor_Empty() {
+        Assert.IsNotNull(A_0D.AccessData(), "Empty tensor internal data array is not initialized.");
+        Assert.AreEqual(1, A_0D.rank, $"Empty tensor does not have expected rank {1}.");
+        Assert.AreEqual(0, A_0D.GetLength(), $"Empty tensor length {A_0D.GetLength()} does not equal expected length {0}.");
+    }
+
+    [Test, Category("Constructors")]
+    public void Constructor_SystemArray() {
+        float[,] Data2D = new float[,] { { 1, 2, 3 }, { 4, 5, 6 }, { 7, 8, 9 } };
+        int n = Data2D.GetLength(0);
+        int m = Data2D.GetLength(1);
+        int p = 0;
+        Assert.IsNotNull(A_2D.AccessData(), "2D tensor internal data array is not initialized.");
+        Assert.AreEqual(Data2D.Rank, A_2D.rank, $"2D tensor rank {A_2D.rank} does not equal expected rank {Data2D.Rank}");
+        Assert.AreEqual(Data2D.Length, A_2D.GetLength(), $"2D tensor length {A_2D.GetLength()} does not equal expected length {Data2D.Length}.");
+        for (int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                float value = A_2D.GetElement(new int[] {i, j});
+                float expected = Data2D[i, j];
+                Assert.AreEqual(expected, value, $"Element {value} at index [{i}, {j}] does not equal expected value {expected}.");
+            }
+        }
+
+        float[,,] Data3D = new float[,,] { { { 1, 2, 3 }, { 4, 5, 6 }, { 7, 8, 9 } }, { { 11, 12, 13 }, { 14, 15, 16 }, { 17, 18, 19 } }, { { 21, 22, 23 }, { 24, 25, 26 }, { 27, 28, 29 } } };
+        n = Data3D.GetLength(0);
+        m = Data3D.GetLength(1);
+        p = Data3D.GetLength(2);
+        Assert.IsNotNull(A_3D.AccessData(), "3D tensor internal data array is not initialized.");
+        Assert.AreEqual(Data3D.Rank, A_3D.rank, $"3D tensor rank {A_3D.rank} does not equal expected rank {Data3D.Rank}");
+        Assert.AreEqual(Data3D.Length, A_3D.GetLength(), $"3D tensor length {A_3D.GetLength()} does not equal expected length {Data3D.Length}.");
+        for (int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                for(int k = 0; k < p; k++) {
+                    float value = A_3D.GetElement(new int[] {i, j, k});
+                    float expected = Data3D[i, j, k];
+                    Assert.AreEqual(expected, value, $"Element {value} at index [{i}, {j}, {k}] does not equal expected value {expected}.");
+                }
+            }
+        }
+    }
+
+    [Test, Category("Constructors")]
+    public void Constructor_FloatArray() { 
+        float[,] Data2D = new float[,] {{1, 2, 4}, {8, 1, 6}, {3, 2, 6}};
+        int n = Data2D.GetLength(0);
+        int m = Data2D.GetLength(1);
+        Assert.IsNotNull(B_2D.AccessData(), "2D tensor internal data array is not initialized.");
+        Assert.AreEqual(Data2D.Rank, B_2D.rank, $"2D tensor rank {B_2D.rank} does not equal expected rank {Data2D.Rank}");
+        Assert.AreEqual(Data2D.Length, B_2D.GetLength(), $"2D tensor length {B_2D.GetLength()} does not equal expected length {Data2D.Length}.");
+        for (int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                float value = B_2D.GetElement(new int[] {i, j});
+                float expected = Data2D[i, j];
+                Assert.AreEqual(expected, value, $"Element {value} at index [{i}, {j}] does not equal expected value {expected}.");
+            }
+        }
+    }
+
+    [Test, Category("Constructors")]
+    public void Constructor_Tensor() {
+        int n = A_2D.GetShape()[0];
+        int m = A_2D.GetShape()[1];
+        int p = 0;
+        B_2D = new Tensor(A_2D);
+        Assert.IsNotNull(B_2D.AccessData(), "2D tensor internal data array is not initialized.");
+        Assert.AreEqual(A_2D.rank, B_2D.rank, $"2D tensor rank {B_2D.rank} does not equal expected rank {A_2D.rank}");
+        Assert.AreEqual(A_2D.GetLength(), B_2D.GetLength(), $"2D tensor length {B_2D.GetLength()} does not equal expected length {A_2D.GetLength()}.");
+        for (int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                float value = B_2D.GetElement(new int[] {i, j});
+                float expected = A_2D.GetElement(new int[] { i, j });
+                Assert.AreEqual(expected, value, $"Element {value} at index [{i}, {j}] does not equal expected value {expected}.");
+            }
+        }
+
+        n = A_3D.GetShape()[0];
+        m = A_3D.GetShape()[1];
+        p = A_3D.GetShape()[2];
+        B_3D = new Tensor(A_3D);
+        Assert.IsNotNull(B_3D.AccessData(), "3D tensor internal data array is not initialized.");
+        Assert.AreEqual(A_3D.rank, B_3D.rank, $"3D tensor rank {B_3D.rank} does not equal expected rank {A_3D.rank}");
+        Assert.AreEqual(A_3D.GetLength(), B_3D.GetLength(), $"3D tensor length {B_3D.GetLength()} does not equal expected length {A_3D.GetLength()}.");
+        for (int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                for(int k = 0; k < p; k++) {
+                    float value = B_3D.GetElement(new int[] {i, j, k});
+                    float expected = A_3D.GetElement(new int[] {i, j, k});
+                    Assert.AreEqual(expected, value, $"Element {value} at index [{i}, {j}, {k}] does not equal expected value {expected}.");
+                }
+            }
+        }
+    }
+
+// DEFAULT OBJECTS
+//------------------------------------------------------------------------------
+    [Test, Category("Default Object")]
+    public void DefaultObject_Zeroes() {
+        float expected = 0f;
+        int n = 3;
+        int m = 3;
+        int p = 0;
+        Assert.AreEqual(n, Zeros_2D.GetShape()[0], $"2D tensor dimension size {Zeros_2D.GetShape()[0]} at index {0} does not equal expected size {n}");
+        Assert.AreEqual(m, Zeros_2D.GetShape()[1], $"2D tensor dimension size {Zeros_2D.GetShape()[1]} at index {1} does not equal expected size {m}");
+        for (int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                float value = Zeros_2D.GetElement(new int[] {i, j});
+                Assert.AreEqual(expected, value, $"Value {value} in 2D tensor at index [{i}, {j}] does not equal expected value {expected}");
+            }
+        }
+
+        n = 3;
+        m = 3;
+        p = 3;
+        Assert.AreEqual(n, Zeros_3D.GetShape()[0], $"3D tensor dimension size {Zeros_3D.GetShape()[0]} at index {0} does not equal expected size {n}");
+        Assert.AreEqual(m, Zeros_3D.GetShape()[1], $"3D tensor dimension size {Zeros_3D.GetShape()[1]} at index {1} does not equal expected size {m}");
+        Assert.AreEqual(p, Zeros_3D.GetShape()[2], $"3D tensor dimension size {Zeros_3D.GetShape()[2]} at index {2} does not equal expected size {p}");
+        for (int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                for(int k = 0; k < p; k++) {
+                    float value = Zeros_3D.GetElement(new int[] {i, j, k});
+                    Assert.AreEqual(expected, value, $"Value {value} in 2D tensor at index [{i}, {j}, {k}] does not equal expected value {expected}");
+                }
+            }
+        }
+    }
+
+    [Test, Category("Default Object")]
+    public void DefaultObject_Ones() {
+        float expected = 1f;
+        int n = 3;
+        int m = 3;
+        int p = 0;
+        Assert.AreEqual(n, Ones_2D.GetShape()[0], $"2D tensor dimension size {Ones_2D.GetShape()[0]} at index {0} does not equal expected size {n}");
+        Assert.AreEqual(m, Ones_2D.GetShape()[1], $"2D tensor dimension size {Ones_2D.GetShape()[1]} at index {1} does not equal expected size {m}");
+        for (int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                float value = Ones_2D.GetElement(new int[] {i, j});
+                Assert.AreEqual(expected, value, $"Value {value} in 2D tensor at index [{i}, {j}] does not equal expected value {expected}");
+            }
+        }
+
+        n = 3;
+        m = 3;
+        p = 3;
+        Assert.AreEqual(n, Ones_3D.GetShape()[0], $"3D tensor dimension size {Ones_3D.GetShape()[0]} at index {0} does not equal expected size {n}");
+        Assert.AreEqual(m, Ones_3D.GetShape()[1], $"3D tensor dimension size {Ones_3D.GetShape()[1]} at index {1} does not equal expected size {m}");
+        Assert.AreEqual(p, Ones_3D.GetShape()[2], $"3D tensor dimension size {Ones_3D.GetShape()[2]} at index {2} does not equal expected size {p}");
+        for (int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                for(int k = 0; k < p; k++) {
+                    float value = Ones_3D.GetElement(new int[] {i, j, k});
+                    Assert.AreEqual(expected, value, $"Value {value} in 2D tensor at index [{i}, {j}, {k}] does not equal expected value {expected}");
+                }
+            }
+        }
     }
 
 // DATA MANAGEMENT
 //------------------------------------------------------------------------------
+    [Test, Category("Data Management")]
+    public void DataManagement_GetElement_Index() {
+        float[] data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29};
+        for(int i = 0; i < data.Length; i++) {
+            float expected = data[i];
+            float value = A_3D.GetElement(i);
+            Assert.AreEqual(expected, value, $"Element {value} at index {i} does not equal expected value {expected}");
+        }
+    }
+
+    [Test, Category("Data Management")]
+    public void DataManagement_GetElement_Indices() {
+        float[,,] data = {{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, {{11, 12, 13}, {14, 15, 16}, {17, 18, 19}}, {{21, 22, 23}, {24, 25, 26}, {27, 28, 29}}};
+        int n = data.GetLength(0);
+        int m = data.GetLength(1);
+        int p = data.GetLength(2);
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                for(int k = 0; k < p; k++) {
+                    int[] indices = {i, j, k};
+                    float expected = data[i, j, k];
+                    float value = A_3D.GetElement(indices);
+                    Assert.AreEqual(expected, value, $"Element {value} at index [{i}, {j}, {k}] does not equal expected value {expected}");
+                }
+            }
+        }
+    }
+
+    [Test, Category("Data Management")]
+    public void DataManagement_SetElement_Index() {
+        float e = -1;
+        B_3D = new Tensor(A_3D);
+        int n = A_3D.GetLength();
+        for(int i = 0; i < n; i++) {
+            B_3D.SetElement(e, i);
+            for(int j = 0; j < n; j++) {
+                float expected = e;
+                if(i != j){
+                    expected = A_3D.GetElement(j);
+                }
+                float value = B_3D.GetElement(j);
+                Assert.AreEqual(expected, value, $"Element {value} at index {i} does not equal expected value {expected}");
+            }
+
+            B_3D = new Tensor(A_3D);
+        }
+    }
+
+    [Test, Category("Data Management")]
+    public void DataManagement_SetElement_Indices() {
+        float e = -1;
+        B_3D = new Tensor(A_3D);
+        int n = A_3D.GetShape()[0];
+        int m = A_3D.GetShape()[1];
+        int p = A_3D.GetShape()[2];
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                for(int k = 0; k < p; k++) {
+                    B_3D.SetElement(e, new int[] {i, j, k});
+                    for(int i2 = 0; i2 < n; i2++) {
+                        for(int j2 = 0; j2 < m; j2++) {
+                            for(int k2 = 0; k2 < p; k2++) {
+                                int[] indices = {i2, j2, k2};
+                                float expected = e;
+                                if(i != i2 || j != j2 || k != k2) {
+                                    expected = A_3D.GetElement(indices);
+                                }
+                                float value = B_3D.GetElement(indices);
+                                Assert.AreEqual(expected, value, $"Element {value} at index [{i2}, {j2}, {k2}] does not equal expected value {expected}");
+                            }
+                        }
+                    }
+
+                    B_3D = new Tensor(A_3D);
+                }
+            }
+        }
+    }
+
     [Test, Category("Data Management")]
     public void DataManagement_GetSlice_Scalar() {
         int n = A_2D.GetShape()[0];

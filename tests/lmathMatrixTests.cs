@@ -39,7 +39,7 @@ public class lmathMatrixTests {
         int n = elements.GetLength(0);
         int m = elements.GetLength(1);
 
-        Assert.NotNull(A.AccessData(), "Empty matrix internal data array is not initialized.");
+        Assert.NotNull(A.AccessData(), "Matrix internal data array is not initialized.");
         Assert.AreEqual(n, A.GetShape()[0], $"Matrix row number {A.GetShape()[0]} does not equal expected row number {n}.");
         Assert.AreEqual(m, A.GetShape()[1], $"Matrix column number {A.GetShape()[1]} does not equal expected column number {m}.");
         Assert.AreEqual(elements.Length, A.GetLength(), $"Matrix length {A.GetLength()} does not equal expected length {elements.Length}.");
@@ -58,7 +58,7 @@ public class lmathMatrixTests {
         int n = elements.GetLength(0);
         int m = elements.GetLength(1);
 
-        Assert.NotNull(B.AccessData(), "Empty matrix internal data array is not initialized.");
+        Assert.NotNull(B.AccessData(), "Matrix internal data array is not initialized.");
         Assert.AreEqual(n, B.GetShape()[0], $"Matrix row number {B.GetShape()[0]} does not equal expected row number {n}.");
         Assert.AreEqual(m, B.GetShape()[1], $"Matrix column number {B.GetShape()[1]} does not equal expected column number {m}.");
         Assert.AreEqual(elements.Length, B.GetLength(), $"Matrix length {B.GetLength()} does not equal expected length {elements.Length}.");
@@ -78,7 +78,7 @@ public class lmathMatrixTests {
         int length = A.GetLength();
         C = new Matrix(A);
 
-        Assert.NotNull(C.AccessData(), "Empty matrix internal data array is not initialized.");
+        Assert.NotNull(C.AccessData(), "Matrix internal data array is not initialized.");
         Assert.AreNotSame(A.AccessData(), C.AccessData(), "Copy constructor did not create a deep copy of internal data.");
         Assert.AreEqual(n, C.GetShape()[0], $"Matrix row number {C.GetShape()[0]} does not equal expected row number {n}.");
         Assert.AreEqual(m, C.GetShape()[1], $"Matrix column number {C.GetShape()[1]} does not equal expected column number {m}.");
