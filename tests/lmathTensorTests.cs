@@ -560,5 +560,131 @@ public class lmathTensorTests {
             }
         }
     }
+
+    [Test, Category("Data Management")]
+    public void DataManagement_AccessData() {
+        float[] data = A_3D.AccessData();
+        Assert.AreSame(A_3D.AccessData(), data, $"Reference of underlying internal data is not made.");
+
+        int n = data.Length;
+        for(int i = 0; i < n; i++) {
+            data[i] = B_3D[i];
+            Assert.AreEqual(B_3D[i], A_3D[i]);
+        }
+    }
+
+    [Test, Category("Data Management")]
+    public void DataManagement_Shape() {
+        int n = 3;
+        int m = 3;
+        int p = 0;
+        int[] shape2D = A_2D.GetShape();
+        int expected = 2;
+        int value = shape2D.Length;
+        Assert.AreEqual(expected, value, $"Dimensionality {value} does not equal expected value {expected}");
+
+        expected = n;
+        value = shape2D[0];
+        Assert.AreEqual(expected, value, $"Shape value {value} at index {0} does not equal expected value {expected}.");
+
+        expected = m;
+        value = shape2D[1];
+        Assert.AreEqual(expected, value, $"Shape value {value} at index {1} does not equal expected value {expected}.");
+
+        n = 3;
+        m = 3;
+        p = 3;
+        int[] shape3D = A_3D.GetShape();
+        expected = 3;
+        value = shape3D.Length;
+        Assert.AreEqual(expected, value, $"Dimensionality {value} does not equal expected value {expected}");
+
+        expected = n;
+        value = shape3D[0];
+        Assert.AreEqual(expected, value, $"Shape value {value} at index {0} does not equal expected value {expected}.");
+
+        expected = m;
+        value = shape3D[1];
+        Assert.AreEqual(expected, value, $"Shape value {value} at index {1} does not equal expected value {expected}.");
+
+        expected = p;
+        value = shape3D[2];
+        Assert.AreEqual(expected, value, $"Shape value {value} at index {2} does not equal expected value {expected}.");
+    }
+
+    [Test, Category("Data Management")]
+    public void DataManagement_Length() {
+        int n = 3;
+        int m = 3;
+        int p = 0;
+        int expected = n * m;
+        int value = A_2D.GetLength();
+        Assert.AreEqual(expected, value, $"Length {value} does not equal expected length {expected}.");
+
+        n = 3;
+        m = 3;
+        p = 3;
+        expected = n * m * p;
+        value = A_3D.GetLength();
+        Assert.AreEqual(expected, value, $"Length {value} does not equal expected length {expected}.");
+    }
+
+    [Test, Category("Data Management")]
+    public void DataManagement_Copy() {
+        int n = A_3D.GetShape()[0];
+        int m = A_3D.GetShape()[1];
+        int p = A_3D.GetShape()[2];
+        B_3D.Copy(A_3D);
+
+        Assert.AreNotSame(A_3D.AccessData(), B_3D.AccessData(), "Tensor did not create a deep copy of data and instead created a shallow copy.");
+        Assert.AreEqual(n, B_3D.GetShape()[0], $"Shape value {B_3D.GetShape()[0]} at index {0} does not equal expected value {n}.");
+        Assert.AreEqual(m, B_3D.GetShape()[1], $"Shape value {B_3D.GetShape()[1]} at index {1} does not equal expected value {m}.");
+        Assert.AreEqual(p, B_3D.GetShape()[2], $"Shape value {B_3D.GetShape()[2]} at index {2} does not equal expected value {p}.");
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                for(int k = 0; k < p; k++) {
+                    int[] indices = {i, j, k};
+                    float expected = A_3D.GetElement(indices);
+                    float value = B_3D.GetElement(indices);
+                    Assert.AreEqual(expected, value, $"value {value} at indices [{i}, {j}, {k}] does not equal expected value {expected}.");
+                }
+            }
+        }
+    }
+
+    [Test, Category("Data Management")]
+    public void DataManagement_Fill() { 
+        int n = A_3D.GetShape()[0];
+        int m = A_3D.GetShape()[1];
+        int p = A_3D.GetShape()[2];
+        float e = 32;
+        A_3D.Fill(e);
+
+        Assert.AreEqual(n, A_3D.GetShape()[0], $"Shape value {A_3D.GetShape()[0]} at index {0} does not equal expected value {n}.");
+        Assert.AreEqual(m, A_3D.GetShape()[1], $"Shape value {A_3D.GetShape()[1]} at index {1} does not equal expected value {m}.");
+        Assert.AreEqual(p, A_3D.GetShape()[2], $"Shape value {A_3D.GetShape()[2]} at index {2} does not equal expected value {p}.");
+        float expected = e;
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                for(int k = 0; k < p; k++) {
+                    int[] indices = {i, j, k};
+                    float value = A_3D.GetElement(indices);
+                    Assert.AreEqual(expected, value, $"value {value} at indices [{i}, {j}, {k}] does not equal expected value {expected}.");
+                }
+            }
+        }
+    }
+
+    [Test, Category("Data Management")]
+    public void DataManagement_Reshape_Tensor_SmallerSize() { 
+    }
+
+    [Test, Category("Data Management")]
+    public void DataManagement_Reshape_Tensor_SameSize() {
+    }
+
+    [Test, Category("Data Management")]
+    public void DataManagement_Reshape_Tensor_GreaterSize() {
+    }
 }
 
