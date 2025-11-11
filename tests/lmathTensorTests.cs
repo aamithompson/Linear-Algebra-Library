@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using lmath;
+using statistics;
 using NUnit.Framework;
 
 [TestFixture]
@@ -676,15 +677,302 @@ public class lmathTensorTests {
     }
 
     [Test, Category("Data Management")]
-    public void DataManagement_Reshape_Tensor_SmallerSize() { 
+    public void DataManagement_Reshape_Tensor_SmallerSize() {
+        int n = A_3D.GetShape()[0];
+        int m = A_3D.GetShape()[1];
+        int p = A_3D.GetShape()[2];
+        B_3D = new Tensor(A_3D);
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                for(int k = 0; k < p; k++) {
+                    if(i == 0 && j == 0 && k == 0) {
+                        continue;
+                    }
+                    B_3D.Reshape(new int[] {n - i, m - j, p - k});
+
+                    Assert.AreEqual(n - i, B_3D.GetShape()[0], $"Shape value {B_3D.GetShape()[0]} does not equal expected value {n - i}.");
+                    Assert.AreEqual(m - j, B_3D.GetShape()[1], $"Shape value {B_3D.GetShape()[1]} does not equal expected value {m - j}.");
+                    Assert.AreEqual(p - k, B_3D.GetShape()[2], $"Shape value {B_3D.GetShape()[2]} does not equal expected value {p - k}.");
+                    for (int i2 = 0; i2 < n - i; i2++) {
+                        for(int j2 = 0; j2 < m - j; j2++) {
+                            for(int k2 = 0; k2 < p - k; k2++) {
+                                int[] indices = {i2, j2, k2};
+                                float value = B_3D.GetElement(indices);
+                                float expected = A_3D.GetElement(indices);
+                                Assert.AreEqual(expected, value, $"Value {value} at index [{i2}, {j2}, {k2}] does not equal expected value {expected}.");
+                            }
+                        }
+                    }
+
+                    B_3D = new Tensor(A_3D);
+                }
+            }
+        }
     }
 
     [Test, Category("Data Management")]
     public void DataManagement_Reshape_Tensor_SameSize() {
+        int n = A_3D.GetShape()[0];
+        int m = A_3D.GetShape()[1];
+        int p = A_3D.GetShape()[2];
+        B_3D = new Tensor(A_3D);
+
+        B_3D.Reshape(new int[] {n, m, p});
+        Assert.AreEqual(n, B_3D.GetShape()[0], $"Shape value {B_3D.GetShape()[0]} does not equal expected value {n}.");
+        Assert.AreEqual(m, B_3D.GetShape()[1], $"Shape value {B_3D.GetShape()[1]} does not equal expected value {m}.");
+        Assert.AreEqual(p, B_3D.GetShape()[2], $"Shape value {B_3D.GetShape()[2]} does not equal expected value {p}.");
+        for (int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                for(int k = 0; k < p; k++) {
+                    int[] indices = {i, j, k};
+                    float value = B_3D.GetElement(indices);
+                    float expected = A_3D.GetElement(indices);
+                    Assert.AreEqual(expected, value, $"Value {value} at index [{i}, {j}, {k}] does not equal expected value {expected}.");
+                }
+            }
+        }
     }
 
     [Test, Category("Data Management")]
     public void DataManagement_Reshape_Tensor_GreaterSize() {
+        int t = 10;
+        int n = A_3D.GetShape()[0];
+        int m = A_3D.GetShape()[1];
+        int p = A_3D.GetShape()[2];
+        B_3D = new Tensor(A_3D);
+        for(int i = 0; i < t; i++) {
+            for(int j = 0; j < t; j++) {
+                for(int k = 0; k < t; k++) {
+                    if(i == 0 && j == 0 && k == 0) {
+                        continue;
+                    }
+                    B_3D.Reshape(new int[] {n + i, m + j, p + k});
+
+                    Assert.AreEqual(n + i, B_3D.GetShape()[0], $"Shape value {B_3D.GetShape()[0]} does not equal expected value {n + i}.");
+                    Assert.AreEqual(m + j, B_3D.GetShape()[1], $"Shape value {B_3D.GetShape()[1]} does not equal expected value {m + j}.");
+                    Assert.AreEqual(p + k, B_3D.GetShape()[2], $"Shape value {B_3D.GetShape()[2]} does not equal expected value {p + k}.");
+                    for (int i2 = 0; i2 < n + i; i2++) {
+                        for(int j2 = 0; j2 < m + j; j2++) {
+                            for(int k2 = 0; k2 < p + k; k2++) {
+                                int[] indices = {i2, j2, k2};
+                                float value = B_3D.GetElement(indices);
+                                float expected = 0.0f;
+                                if(i2 < n && j2 < m && k2 < p) {
+                                    expected = A_3D.GetElement(indices);
+                                }
+
+                                Assert.AreEqual(expected, value, $"Value {value} at index [{i2}, {j2}, {k2}] does not equal expected value {expected}.");
+                            }
+                        }
+                    }
+
+                    B_3D = new Tensor(A_3D);
+                }
+            }
+        }
+    }
+
+// OPERATIONS
+//------------------------------------------------------------------------------
+    [Test, Category("Operations")]
+    public void Operations_Scale() {
+        float c = 2.0f;
+        int n = A_3D.GetShape()[0];
+        int m = A_3D.GetShape()[1];
+        int p = A_3D.GetShape()[2];
+        B_3D = new Tensor(A_3D);
+
+        B_3D.Scale(c);
+        for (int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                for(int k = 0; k < p; k++) {
+                    int[] indices = {i, j, k};
+                    float value = B_3D.GetElement(indices);
+                    float expected = A_3D.GetElement(indices) * c;
+                    Assert.AreEqual(expected, value, $"Value {value} at index [{i}, {j}, {k}] does not equal expected value {expected}.");
+                }
+            }
+        }
+    }
+
+    [Test, Category("Operations")]
+    public void Operations_Negate() {
+        int n = A_3D.GetShape()[0];
+        int m = A_3D.GetShape()[1];
+        int p = A_3D.GetShape()[2];
+        B_3D = new Tensor(A_3D);
+
+        B_3D.Negate();
+        for (int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                for(int k = 0; k < p; k++) {
+                    int[] indices = {i, j, k};
+                    float value = B_3D.GetElement(indices);
+                    float expected = A_3D.GetElement(indices) * -1.0f;
+                    Assert.AreEqual(expected, value, $"Value {value} at index [{i}, {j}, {k}] does not equal expected value {expected}.");
+                }
+            }
+        }
+    }
+
+    [TestCase("Add"), Category("Operations")]
+    [TestCase("Subtract"), Category("Operations")]
+    [TestCase("Hadamard"), Category("Operations")]
+    public void Operations_TwoTensors_ElementWise(string operation) {
+        int n = A_3D.GetShape()[0];
+        int m = A_3D.GetShape()[1];
+        int p = A_3D.GetShape()[1];
+        Tensor C_3D = new Tensor();
+
+        switch (operation) {
+            case "Add": C_3D = A_3D + B_3D; break;
+            case "Subtract": C_3D = A_3D - B_3D; break;
+            case "Hadamard": C_3D = Tensor.HadamardProduct(A_3D, B_3D); break;
+            default: throw new System.ArgumentException();
+        }
+
+        for(int i = 0; i < n; i++) {
+            for( int j = 0; j < m; j++) {
+                for(int k = 0; k < p; k++) {
+                    int[] indices = {i, j, k};
+                    float expected = operation switch {
+                        "Add" => A_3D.GetElement(indices) + B_3D.GetElement(indices),
+                        "Subtract" => A_3D.GetElement(indices) - B_3D.GetElement(indices),
+                        "Hadamard" => A_3D.GetElement(indices) * B_3D.GetElement(indices),
+                        _ => 0
+                    };
+
+                    float value = C_3D.GetElement(indices);
+                    Assert.That(value, Is.EqualTo(expected).Within(1e-5f), $"Element {value} at index [{i}, {j}, {k}] does not equal expected element {expected}."); ;
+                }
+            }
+        }
+    }
+
+    [Test, Category("Operations")]
+    public void Operations_ContentEquals() {
+        Assert.IsFalse(A_3D.ContentEquals(B_3D));
+
+        B_3D = new Tensor(A_3D);
+        Assert.IsTrue(A_3D.ContentEquals(B_3D));
+    }
+
+// RANDOM
+//------------------------------------------------------------------------------
+    [Test, Category("Random")]
+    public void Random_Uniform_TensorFromFloats() {
+        int bcount = 100; //Bucket Count
+        int scount = 100000; //Sample Count
+
+        Tensor sum = Tensor.Zeros(new int[] {3, 3, 3});
+        Vector[] buckets = new Vector[3 * 3 * 3] {Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount),
+                                                Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount),
+                                                Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount),
+                                                Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount),
+                                                Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount),
+                                                Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount),
+                                                Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount),
+                                                Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount),
+                                                Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount)};
+        for(int i = 0; i < scount; i++) {
+            A_3D = Tensor.Random(0, 1, new int[] {3, 3, 3});
+            for(int j = 0; j < 27; j++) {
+                Assert.That(A_3D[j], Is.InRange(0, 1));
+                int bucket = (int)System.Math.Min(bcount-1, System.Math.Floor(A_3D[j] * bcount));
+                buckets[j][bucket]++;
+            }
+            sum += A_3D;
+        }
+
+        Tensor mean = sum * (1f / scount);
+        float expectedMean = (1f + 0f) / 2f;
+        for (int i = 0; i < 27; i++) {
+            Assert.That(mean[i], Is.EqualTo(expectedMean).Within(1e-2f));
+        }
+
+        int expectedCount = scount / bcount;
+        double p = 1.0 / bcount;
+        double sigma = System.Math.Sqrt(scount * p * (1-p));
+        int expectedMin = expectedCount - (int)(4 * sigma);
+        int expectedMax = expectedCount + (int)(4 * sigma);
+        for (int i = 0; i < bcount; i++) {
+            for(int j = 0; j < 27; j++) {
+                Assert.That(buckets[j][i], Is.InRange(expectedMin, expectedMax));
+            }
+        }
+    }
+
+    [Test, Category("Random")]
+    public void Random_Normal_TensorFromFloats() {
+        const int bcount = 3; //Bucket Count
+        int scount = 100000; //Sample Count
+        float expectedMean = 1f;
+        float expectedSTDDev = 1f;
+        Vector bvalues = Vector.Zeros(bcount);
+        for(int i = 0; i < bcount; i++) {
+            double cdf = Statistics.NormalCDF(0.0, 1.0, i+1);
+            double probability = 2 * cdf - 1;
+            bvalues[i] = (float) probability;
+
+        }
+
+        for(int i = bcount - 1; i > 0; i--) {
+            bvalues[i] -= bvalues[i - 1];
+        }
+
+        Tensor sum = Tensor.Zeros(new int[] {3, 3, 3});
+        Tensor sumSQ = Tensor.Zeros(new int[] {3, 3, 3});
+        Vector[] buckets = new Vector[3 * 3 * 3] {Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount),
+                                                Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount),
+                                                Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount),
+                                                Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount),
+                                                Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount),
+                                                Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount),
+                                                Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount),
+                                                Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount),
+                                                Vector.Zeros(bcount), Vector.Zeros(bcount), Vector.Zeros(bcount)};
+
+        for (int i = 0; i < scount; i++) {
+            A_3D = Tensor.RandomN(expectedMean, expectedSTDDev, new int[] {3, 3, 3});
+            sum += A_3D;
+            for(int j = 0; j < 27; j++) {
+                sumSQ[j] += A_3D[j] * A_3D[j];
+            }
+
+            for(int j = 0; j < 27; j++) {
+                bool bucketFound = false;
+                float value = System.MathF.Abs(A_3D[j] - expectedMean);
+                for(int k = 0; k < bcount-1; k++) {
+                    if(value <= (k+1) * expectedSTDDev) {
+                        buckets[j][k]++;
+                        bucketFound = true;
+                        break;
+                    }
+                }
+
+                if(!bucketFound) {
+                    buckets[j][bcount - 1]++;
+                }
+            }
+        }
+
+        Tensor mean = sum * (1f / scount);
+        for(int i = 0; i < 27; i++) {
+            Assert.That(mean[i], Is.EqualTo(expectedMean).Within(1e-2f));
+        }
+
+        Tensor variance = (sumSQ * (1f / scount)) - Tensor.HadamardProduct(mean, mean);
+        Tensor stdDev = new Tensor(variance);
+        for(int i = 0; i < 9; i++) {
+            stdDev[i] = System.MathF.Sqrt(stdDev[i]);
+            Assert.That(stdDev[i], Is.EqualTo(expectedSTDDev).Within(1e-2f));
+        }
+        
+        for(int i = 0; i < bcount; i++) {
+            for (int j = 0; j < 9; j++) {
+                float percent = (float)buckets[j][i]/scount;
+                Assert.That(percent, Is.EqualTo(bvalues[i]).Within(1e-2f));
+            }
+        }
     }
 }
-
