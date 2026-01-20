@@ -183,7 +183,7 @@ Large matrices have significant increase in performance by opting in parallel co
 While the current implementation provides a baseline performance, usage, and flexibility, there are several considerations for future development:
 
 ### Optimization
-- **SMID/Vectorization** - Utilize .NET's `System.Numerics` for `Vector<T>` or other options to enable usage of multiple operations per CPU instruction, increasing GFLOPS.
+- **SIMD/Vectorization** - Utilize .NET's `System.Numerics` for `Vector<T>` or other options to enable usage of multiple operations per CPU instruction, increasing GFLOPS.
 
 - **Dynamic Optimization** - Analyze matrix size across height and length and determining transposition, operation ordering, and loop ordering to increase performance.
 
